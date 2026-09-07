@@ -1,6 +1,6 @@
 // Pure calculation functions: no DOM or browser state here.
 export type Parent = 'first' | 'second'
-export type Coverage = 'individual' | 'spouse' | 'children' | 'family'
+export type Coverage = 'individual' | 'spouse' | 'child' | 'children' | 'family'
 export type Metric = 'netPremium' | 'deductible' | 'maximum'
 
 export interface Household {
@@ -50,6 +50,7 @@ export interface Comparison {
 export const coverageLabels: Record<Coverage, string> = {
   individual: 'Employee only',
   spouse: 'Employee + spouse',
+  child: 'Employee + one child',
   children: 'Employee + children',
   family: 'Full family',
 }
@@ -138,15 +139,21 @@ export function comparePlans(household: Household, plans: Plan[]): Comparison[] 
     }
   }
 
+  // Tiers that can cover one parent plus a given number of their children.
+  // A single allocated child fits either an "employee + one child" tier or a
+  // general "employee + children" tier; two or more need the general tier.
+  const tiersFor = (count: number): Coverage[] =>
+    count === 0 ? ['individual'] : count === 1 ? ['child', 'children'] : ['children']
+
   // Try every child allocation, with each parent on their own employer's plan.
   // Children are interchangeable here because the scenarios assume equal usage.
   for (let firstChildren = 0; firstChildren <= household.children; firstChildren++) {
     const secondChildren = household.children - firstChildren
     const firstPlans = plans.filter(
-      (p) => p.owner === 'first' && p.coverage === (firstChildren ? 'children' : 'individual'),
+      (p) => p.owner === 'first' && tiersFor(firstChildren).includes(p.coverage),
     )
     const secondPlans = plans.filter(
-      (p) => p.owner === 'second' && p.coverage === (secondChildren ? 'children' : 'individual'),
+      (p) => p.owner === 'second' && tiersFor(secondChildren).includes(p.coverage),
     )
     for (const first of firstPlans) {
       for (const second of secondPlans) {

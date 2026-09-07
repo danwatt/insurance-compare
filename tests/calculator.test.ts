@@ -90,6 +90,49 @@ test('builds both together options and all child splits with everyone covered on
   assert.equal(split.maximum, 19200)
 })
 
+test('an employee + one child tier covers a single allocated child', () => {
+  const plans: Plan[] = (['first', 'second'] as const).flatMap((owner) =>
+    (['individual', 'child', 'children'] as const).map((coverage) => ({
+      ...plan,
+      id: `${owner}-${coverage}`,
+      owner,
+      coverage,
+    })),
+  )
+  const results = comparePlans(household, plans)
+  // With two children, one per parent, the single-child tier is eligible
+  // alongside the general employee + children tier.
+  const oneEach = results.filter((r) => r.id.startsWith('split-') && r.id.endsWith('-1'))
+  assert.deepEqual(
+    new Set(oneEach.map((r) => r.id)),
+    new Set([
+      'split-first-child-second-child-1',
+      'split-first-child-second-children-1',
+      'split-first-children-second-child-1',
+      'split-first-children-second-children-1',
+    ]),
+  )
+  for (const result of oneEach)
+    assert.equal(
+      result.enrollments.reduce((sum, e) => sum + e.members, 0),
+      4,
+    )
+  // The single-child tier is priced from the same fields as any two-person tier.
+  const bothSingleChild = results.find((r) => r.id === 'split-first-child-second-child-1')!
+  assert.equal(bothSingleChild.premium, 5200)
+  assert.equal(bothSingleChild.deductible, 10200)
+})
+
+test('the employee + one child tier is not used for two or more allocated children', () => {
+  const results = comparePlans({ ...household, children: 3 }, [
+    { ...plan, id: 'first-child', owner: 'first', coverage: 'child' },
+    { ...plan, id: 'second-child', owner: 'second', coverage: 'child' },
+  ])
+  // Neither parent can take all three children on a single-child tier,
+  // and 1 + 1 leaves a child uncovered, so nothing is eligible.
+  assert.deepEqual(results, [])
+})
+
 test('incompatible tiers do not produce partial-family comparisons', () => {
   assert.deepEqual(comparePlans(household, [{ ...plan, coverage: 'spouse' }]), [])
   assert.deepEqual(comparePlans(household, [{ ...plan, coverage: 'individual' }]), [])

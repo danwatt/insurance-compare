@@ -1,4 +1,4 @@
-# Coverwise
+# CoverCompare
 
 A single-page family health-insurance calculator, built with Vite and plain TypeScript. No UI framework, backend, or account is required.
 
@@ -33,11 +33,11 @@ When a user changes a plan, the event handler updates `state`, saves it to local
 
 ## Entering plans
 
-Add one entry for each enrollment tier, including its employee premium and annual limits. The same benefit plan can have separate employee-only, employee + spouse, employee + children, and full-family entries. This allows each tier to have different deductibles, limits, and employer funding.
+Add one entry for each enrollment tier, including its employee premium and annual limits. The same benefit plan can have separate employee-only, employee + spouse, employee + one child, employee + children, and full-family entries. This allows each tier to have different deductibles, limits, and employer funding.
 
-The household consists of two parents and zero to twenty children. Each parent belongs to one employer's coverage in split arrangements. Every combination covers the entire household once. The calculator tries both whole-family options and every possible allocation of children across the parents' employee-only / employee + children tiers, including multiple benefit-plan alternatives.
+The household consists of two parents and zero to twenty children. Each parent belongs to one employer's coverage in split arrangements. Every combination covers the entire household once. The calculator tries both whole-family options and every possible allocation of children across the parents' employee-only / employee + one child / employee + children tiers, including multiple benefit-plan alternatives.
 
-If an employer uses the family rate for a parent plus children, enter an employee + children option at that rate. Full-family entries represent both parents and all children. Employee + spouse entries apply when there are no children.
+If an employer uses the family rate for a parent plus children, enter an employee + children option at that rate. An employee + one child entry is only used when exactly one child is assigned to that parent, so it can matter for a two-child family with one child on each parent's plan. Full-family entries represent both parents and all children. Employee + spouse entries apply when there are no children.
 
 ## Calculations
 

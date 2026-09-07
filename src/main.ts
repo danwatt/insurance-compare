@@ -61,7 +61,7 @@ function persist() {
 function render() {
   app.innerHTML = `
     <header class="site-header"><div class="header-inner">
-      <a class="brand" href="#"><span class="brand-mark">${icon('shield', 23)}</span>Coverwise<span class="brand-dot">.</span></a>
+      <a class="brand" href="#"><span class="brand-mark">${icon('shield', 23)}</span>CoverCompare<span class="brand-dot">.</span></a>
       <nav aria-label="Main navigation"><a class="active" href="#comparison">Plan comparison</a><a href="#how-it-works">How it works</a></nav>
       <span class="private-label">${icon('shield', 15)} Private by design</span>
     </div></header>
@@ -94,9 +94,9 @@ function render() {
       <section class="explanation" id="how-it-works">
         <div class="section-kicker">THE DETAILS MATTER</div><h2>A clearer comparison, with a few assumptions.</h2>
         <div class="explanation-grid"><div><span class="explanation-number">01</span><h3>Premiums are the starting line.</h3><p>Your share of each payment × payments per year. Use 12 for monthly, 24 for twice monthly, or 26 for every two weeks. Include applicable surcharges in the premium. The baseline comparison subtracts your expected annual HSA Match.</p></div><div><span class="explanation-number">02</span><h3>Family limits work together.</h3><p>For embedded deductibles, we use the lower of the individual limit × covered members or the family limit. Aggregate plans use the family deductible, capped by applicable out-of-pocket limits.</p></div><div><span class="explanation-number">03</span><h3>Worst case has a boundary.</h3><p>Premiums + out-of-pocket exposure − HSA Match for covered, in-network care. The deductible is already part of this limit. Out-of-network care, excluded services, and tax effects are not included.</p></div></div>
-        <details class="assumptions"><summary>${icon('info', 17)} What else should I check in my benefits guide?</summary><div><p>Compare provider networks, prescription coverage, copays, coinsurance, HSA Match, and working-spouse surcharges or exclusions. The expected annual HSA Match is deducted once from each scenario total, including when it remains in your HSA for future care. Your own HSA contributions are not deducted.</p><p>These are spending scenarios, not a prediction of medical bills. The deductible scenario excludes copays and coinsurance beyond the deductible. Enter the per-person limits that apply to the chosen tier; these can differ from employee-only limits. All out-of-pocket limits here are embedded individual limits.</p><p>Each tier must be eligible for the people shown. “Employee + children” covers one parent and their allocated children; “Full family” covers both parents and all children. If your employer charges the family rate for employee + children, add an employee + children entry with that rate and its applicable limits. Spouse exclusions, age-based eligibility, dual coverage, midyear changes, and different plan-year dates are not modeled.</p><p>Learn more: <a href="https://www.healthcare.gov/glossary/deductible/" target="_blank" rel="noreferrer">Deductibles</a> and <a href="https://www.healthcare.gov/glossary/out-of-pocket-maximum-limit/" target="_blank" rel="noreferrer">out-of-pocket limits</a> at HealthCare.gov.</p></div></details>
+        <details class="assumptions"><summary>${icon('info', 17)} What else should I check in my benefits guide?</summary><div><p>Compare provider networks, prescription coverage, copays, coinsurance, HSA Match, and working-spouse surcharges or exclusions. The expected annual HSA Match is deducted once from each scenario total, including when it remains in your HSA for future care. Your own HSA contributions are not deducted.</p><p>These are spending scenarios, not a prediction of medical bills. The deductible scenario excludes copays and coinsurance beyond the deductible. Enter the per-person limits that apply to the chosen tier; these can differ from employee-only limits. All out-of-pocket limits here are embedded individual limits.</p><p>Each tier must be eligible for the people shown. “Employee + one child” covers one parent and exactly one child, and is only used when a single child is assigned to that parent; “Employee + children” covers one parent and their allocated children; “Full family” covers both parents and all children. If your employer charges the family rate for employee + children, add an employee + children entry with that rate and its applicable limits. Spouse exclusions, age-based eligibility, dual coverage, midyear changes, and different plan-year dates are not modeled.</p><p>Learn more: <a href="https://www.healthcare.gov/glossary/deductible/" target="_blank" rel="noreferrer">Deductibles</a> and <a href="https://www.healthcare.gov/glossary/out-of-pocket-maximum-limit/" target="_blank" rel="noreferrer">out-of-pocket limits</a> at HealthCare.gov.</p></div></details>
       </section>
-      <footer><a class="brand" href="#">${icon('shield', 19)} Coverwise.</a><span>A little less guesswork. A little more peace of mind.</span><button id="load-examples">Load example plans</button></footer>
+      <footer><a class="brand" href="#">${icon('shield', 19)} CoverCompare.</a><span>A little less guesswork. A little more peace of mind.</span><button id="load-examples">Load example plans</button></footer>
     </main>
     <dialog id="share-dialog" aria-labelledby="share-title"></dialog>
     <dialog id="plan-dialog" aria-labelledby="dialog-title"></dialog>
@@ -514,7 +514,7 @@ function exportResults() {
   const url = URL.createObjectURL(new Blob(['\uFEFF', csv], { type: 'text/csv;charset=utf-8;' }))
   const anchor = document.createElement('a')
   anchor.href = url
-  anchor.download = 'coverwise-comparison.csv'
+  anchor.download = 'covercompare-comparison.csv'
   anchor.click()
   setTimeout(() => URL.revokeObjectURL(url), 1000)
 }

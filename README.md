@@ -33,7 +33,7 @@ When a user changes a plan, the event handler updates `state`, saves it to local
 
 ## Entering plans
 
-Add one entry for each enrollment tier, including its employee premium and annual limits. The same benefit plan can have separate employee-only, employee + spouse, employee + one child, employee + children, and full-family entries. This allows each tier to have different deductibles, limits, and employer funding.
+The plan editor lays out identity, premiums, deductible, out-of-pocket maximum, and optional context on a single screen, with the action buttons pinned to the bottom of the dialog. Add one entry for each enrollment tier, including its employee premium and annual limits. The same benefit plan can have separate employee-only, employee + spouse, employee + one child, employee + children, and full-family entries. This allows each tier to have different deductibles, limits, and employer funding.
 
 The household consists of two parents and zero to twenty children. Each parent belongs to one employer's coverage in split arrangements. Every combination covers the entire household once. The calculator tries both whole-family options and every possible allocation of children across the parents' employee-only / employee + one child / employee + children tiers, including multiple benefit-plan alternatives.
 

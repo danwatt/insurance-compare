@@ -404,7 +404,7 @@ h1 em {
 label {
   display: flex;
   flex-direction: column;
-  gap: 7px;
+  gap: 5px;
   font-size: 11px;
   font-weight: 600;
   color: #657066;
@@ -1114,8 +1114,8 @@ footer > button {
 dialog {
   border: 1px solid #e1e6d9;
   border-radius: 16px;
-  padding: 29px;
-  width: 620px;
+  padding: 22px 24px;
+  width: 780px;
   max-width: calc(100vw - 28px);
   max-height: 90svh;
   box-shadow: 0 25px 90px #17281e30;
@@ -1128,29 +1128,48 @@ dialog::backdrop {
 }
 .dialog-header {
   display: flex;
-  align-items: center;
+  align-items: start;
   justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 13px;
 }
 .dialog-header h2 {
-  font-size: 25px;
+  font-size: 19px;
 }
 .dialog-intro {
-  font-size: 12px;
+  font-size: 11px;
   color: #87907e;
-  margin: 12px 0 21px;
+  margin: 4px 0 0;
 }
 .form-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 16px;
+  gap: 13px;
+}
+/* Identity, premiums, and limits each pack onto a single row on wide dialogs. */
+.form-grid.identity {
+  grid-template-columns: 1.2fr 1.2fr 0.9fr 1.1fr;
+}
+.form-grid.premiums {
+  grid-template-columns: 1fr 1.4fr;
+}
+.form-grid.premiums:has(#custom-periods:not([hidden])) {
+  grid-template-columns: 1fr 1.4fr 0.9fr;
+}
+.form-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 22px;
+  align-items: start;
 }
 .form-heading {
   display: flex;
+  align-items: baseline;
   justify-content: space-between;
   gap: 12px;
   font-size: 13px;
-  margin: 25px 0 14px;
-  padding-top: 18px;
+  margin: 14px 0 9px;
+  padding-top: 10px;
   border-top: 1px solid var(--line);
 }
 .form-heading span {
@@ -1178,15 +1197,17 @@ label small {
 .money-field input {
   padding-left: 26px;
 }
+/* Sits inside the premiums heading rather than taking its own row. */
 .annual-preview {
   background: #eef4e7;
-  border-radius: 6px;
+  border-radius: 5px;
   color: #829572;
-  display: flex;
-  justify-content: space-between;
-  font-size: 11px;
-  padding: 11px 13px;
-  margin-top: 15px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 10px;
+  font-weight: 400;
+  padding: 4px 9px;
+  margin-left: auto;
+  white-space: nowrap;
 }
 .annual-preview strong {
   color: #50763f;
@@ -1195,7 +1216,7 @@ label small {
   display: flex;
   flex-direction: row;
   align-items: start;
-  margin-top: 13px;
+  margin-top: 10px;
   gap: 9px;
   font-size: 11px;
   font-weight: 500;
@@ -1210,13 +1231,19 @@ label small {
   display: block;
   margin-top: 4px;
 }
+/* Pinned to the bottom of the dialog so the submit button never scrolls away. */
 .dialog-actions {
+  position: sticky;
+  /* Offset by the dialog's own bottom padding so the bar sits flush. */
+  bottom: -22px;
+  z-index: 1;
+  background: #fffefa;
   display: flex;
   gap: 10px;
   justify-content: flex-end;
   border-top: 1px solid var(--line);
-  padding-top: 20px;
-  margin-top: 24px;
+  padding: 12px 24px 18px;
+  margin: 14px -24px -22px;
   align-items: center;
 }
 .delete-button {
@@ -1231,10 +1258,10 @@ label small {
 .form-error {
   background: #fbede7;
   color: #9b4f38;
-  padding: 12px;
+  padding: 10px 12px;
   border-radius: 5px;
   font-size: 12px;
-  margin-top: 16px;
+  margin-top: 12px;
 }
 .confirm-dialog {
   width: 440px;
@@ -1353,6 +1380,21 @@ tbody tr.prior-row .active-column {
   }
   h1 {
     font-size: 51px;
+  }
+}
+/* The dialog stops being wide enough for its single-row sections. */
+@media (max-width: 860px) {
+  .form-grid.identity,
+  .form-grid.premiums,
+  .form-grid.premiums:has(#custom-periods:not([hidden])) {
+    grid-template-columns: 1fr 1fr;
+  }
+  .form-columns {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+  .annual-preview {
+    margin-left: 0;
   }
 }
 @media (max-width: 1000px) {
@@ -1617,8 +1659,19 @@ tbody tr.prior-row .active-column {
   dialog {
     padding: 22px;
   }
-  .form-grid {
+  .dialog-actions {
+    padding: 12px 22px 22px;
+    margin: 14px -22px -22px;
+  }
+  .form-grid,
+  .form-grid.identity,
+  .form-grid.premiums,
+  .form-grid.premiums:has(#custom-periods:not([hidden])) {
+    grid-template-columns: 1fr;
     gap: 13px;
+  }
+  .form-heading {
+    flex-wrap: wrap;
   }
   .form-heading {
     align-items: baseline;

@@ -49,6 +49,8 @@ const icon = (name: string, size = 20) => {
     close: '<path d="m6 6 12 12M6 18 18 6"/>',
     info: '<circle cx="12" cy="12" r="9"/><path d="M12 11v6m0-10v1"/>',
     download: '<path d="M12 3v12m-5-5 5 5 5-5M4 16v5h16v-5"/>',
+    printer:
+      '<path d="M7 9V3h10v6M7 19H5a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2M7 15h10v6H7z"/>',
     leaf: '<path d="M20 4C8 2 1 10 6 17s16 0 14-13ZM6 18l9-9M4 21l2-3"/>',
   }
   return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths[name] ?? paths.shield}</svg>`
@@ -88,7 +90,7 @@ function render() {
         <div class="under-plans"><span>${icon(saved ? 'check' : 'info', 14)} ${saved ? 'Changes saved in this browser. Your data stays on this device.' : 'Browser storage is unavailable. Export your results before leaving.'}</span><span>All costs in USD · One full plan year</span></div>
       </section>
       <section id="comparison" aria-labelledby="comparison-heading">
-        <div class="section-heading"><div><div class="section-kicker">02 / THE BIG PICTURE</div><h2 id="comparison-heading">Find your best fit</h2><p>Every eligible combination. Three ways to look at the cost.</p></div><div class="comparison-actions"><button class="button secondary" id="share">Share comparison</button><button class="button secondary" id="export" ${comparePlans(state.household, state.plans).length ? '' : 'disabled'}>${icon('download', 17)} Export results</button></div></div>
+        <div class="section-heading"><div><div class="section-kicker">02 / THE BIG PICTURE</div><h2 id="comparison-heading">Find your best fit</h2><p>Every eligible combination. Three ways to look at the cost.</p></div><div class="comparison-actions"><button class="button secondary" id="share">Share comparison</button><button class="button secondary" id="print">${icon('printer', 17)} Print / Save PDF</button><button class="button secondary" id="export" ${comparePlans(state.household, state.plans).length ? '' : 'disabled'}>${icon('download', 17)} Export results</button></div></div>
         <div id="results"></div>
       </section>
       <section class="explanation" id="how-it-works">
@@ -120,7 +122,7 @@ function renderPeriodicCosts(result: Comparison, key: Metric) {
   return `<div class="periodic-costs"><span>${money(costs.monthly)} / month</span>${costs.paychecks
     .map(
       (paycheck) =>
-        `<span>${paycheck.owner ? `${escape(state.household[paycheck.owner])}: ` : ''}${money(paycheck.amount)} / paycheck${combined ? ' combined' : ''} <small>(${paycheck.periods}/yr)</small></span>`,
+        `<span${combined ? ' title="combined"' : ''}>${paycheck.owner ? `${escape(state.household[paycheck.owner])}: ` : ''}${money(paycheck.amount)} / ${combined ? 'per pp' : 'paycheck'} <small>(${paycheck.periods}/yr)</small></span>`,
     )
     .join('')}</div>`
 }
@@ -128,6 +130,16 @@ function renderPeriodicCosts(result: Comparison, key: Metric) {
 function renderResults() {
   const results = comparePlans(state.household, state.plans).sort((a, b) => a[metric] - b[metric])
   const container = document.querySelector<HTMLDivElement>('#results')!
+  // Flag the plans in the lowest-cost combination so the print layout can
+  // highlight them in the "Your available plans" section up top.
+  const winningPlans = new Set(
+    results[0]?.enrollments.map((enrollment) => enrollment.plan.id) ?? [],
+  )
+  document
+    .querySelectorAll<HTMLButtonElement>('.plan-row')
+    .forEach((row) =>
+      row.classList.toggle('winning-plan', winningPlans.has(row.dataset.edit ?? '')),
+    )
   if (!results.length) {
     container.innerHTML = `<div class="empty-results">${icon('people', 32)}<h3>Let's get everyone covered.</h3><p>Add a full-family plan, or compatible employee-only and employee + children plans from both parents, to see your comparisons.${state.household.children === 0 ? ' For two adults, employee + spouse works too.' : ''}</p><button class="button secondary" id="empty-add">${icon('plus', 16)} Add a plan</button></div>`
     document.querySelector('#empty-add')?.addEventListener('click', () => openPlan())
@@ -282,6 +294,7 @@ function bindEvents() {
     ),
   )
   document.querySelector('#export')!.addEventListener('click', exportResults)
+  document.querySelector('#print')!.addEventListener('click', () => window.print())
 }
 
 function confirmAction(title: string, description: string, action: string, onConfirm: () => void) {

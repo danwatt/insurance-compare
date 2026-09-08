@@ -1544,3 +1544,227 @@ label small {
     transition: none !important;
   }
 }
+
+@media print {
+  @page {
+    margin: 8mm;
+  }
+  :root {
+    font-size: 9px;
+    background: #fff;
+  }
+  .site-header,
+  .intro,
+  .share-notice,
+  .sample-banner,
+  .comparison-actions,
+  .scenario-tabs,
+  .table-toolbar,
+  .under-plans,
+  .employer-footer,
+  .employer-header span,
+  .explanation,
+  footer,
+  dialog,
+  .cost-bar,
+  .cost-details,
+  .results-note svg,
+  .section-heading button,
+  .employer-header .icon-button,
+  .empty-results button {
+    display: none !important;
+  }
+  main {
+    max-width: none;
+    padding: 0;
+  }
+  /* Print in near-black for maximum contrast on paper. */
+  main,
+  main h1,
+  main h2,
+  main h3,
+  main p,
+  main span,
+  main small,
+  main strong,
+  main a,
+  main th,
+  main td,
+  main label,
+  main summary,
+  .member-total,
+  .member-total strong,
+  .recommendation-total,
+  .coverage-name {
+    color: #141414 !important;
+  }
+  /* Secondary text stays readable rather than washed out (>= 7:1 on white). */
+  .plan-subtitle,
+  .plan-rate small,
+  .plan-rate > span,
+  thead small,
+  tbody td > span,
+  .periodic-costs,
+  .periodic-costs small,
+  .enrollments,
+  .enrollment-plan,
+  .recommendation-label,
+  .recommendation-total span,
+  .results-note {
+    color: #3d3d3d !important;
+  }
+  /* Flatten decorative tints to near-white; keep only faint structure. */
+  .family-panel,
+  .employer-card,
+  .employer-header,
+  .plan-row,
+  .empty-results,
+  tbody td,
+  tbody th,
+  .best-row,
+  .best-row .active-column {
+    background: #fff !important;
+  }
+  thead,
+  thead .active-column {
+    background: #ededed !important;
+  }
+  tbody .active-column {
+    background: #f6f6f6 !important;
+  }
+  .best-tag,
+  .rank,
+  .count {
+    background: #e6e6e6 !important;
+    color: #141414 !important;
+    border-color: #b0b0b0 !important;
+  }
+  .owner-dot,
+  .owner-dot.second {
+    background: #333 !important;
+  }
+  #plans,
+  #comparison {
+    margin-top: 7px;
+  }
+  #plans {
+    break-inside: avoid;
+  }
+  h2 {
+    font-size: 13px;
+  }
+  .section-heading {
+    margin-bottom: 5px;
+  }
+  .section-heading p,
+  .section-kicker {
+    display: none;
+  }
+  .family-panel,
+  .employer-card,
+  .comparison-scroll,
+  .recommendation {
+    box-shadow: none !important;
+    border-color: #8a8a8a !important;
+    break-inside: avoid;
+  }
+  .employer-header,
+  .plan-row,
+  tbody tr,
+  thead {
+    border-color: #c4c4c4 !important;
+  }
+  .family-panel {
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 10px 12px;
+  }
+  .family-panel input {
+    height: 26px;
+  }
+  .employer-grid {
+    gap: 10px;
+  }
+  .employer-header {
+    padding: 8px 12px;
+  }
+  .employer-avatar {
+    width: 28px;
+    height: 28px;
+  }
+  .plan-row {
+    padding: 4px 12px !important;
+  }
+  .plan-row.winning-plan {
+    background: #e4e4e4 !important;
+    box-shadow: inset 3px 0 0 #141414 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .winning-plan .coverage-name::after {
+    content: ' · best fit';
+    font-weight: 600;
+  }
+  .plan-subtitle {
+    margin-top: 1px;
+  }
+  .recommendation {
+    background: #f4f4f3 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+    padding: 8px 12px;
+    gap: 10px;
+  }
+  .recommendation-icon {
+    display: none;
+  }
+  .recommendation h3 {
+    font-size: 14px;
+  }
+  .recommendation p {
+    display: none;
+  }
+  .recommendation-total {
+    font-size: 20px;
+  }
+  .comparison-scroll {
+    overflow: visible !important;
+  }
+  table {
+    min-width: 0 !important;
+    font-size: 8px;
+  }
+  th,
+  td {
+    padding: 4px 7px !important;
+  }
+  tbody td {
+    min-width: 0;
+  }
+  tbody td > strong {
+    font-size: 11px;
+  }
+  .periodic-costs {
+    margin: 3px 0 3px;
+    gap: 1px;
+    font-size: 8px;
+    line-height: 1.35;
+  }
+  .enrollments {
+    padding-left: 0;
+    margin-top: 2px;
+    font-size: 7px;
+    line-height: 1.45;
+  }
+  tbody tr {
+    break-inside: avoid;
+  }
+  .results-note {
+    margin-top: 6px;
+    font-size: 7px;
+    line-height: 1.35;
+  }
+  a[href]::after {
+    content: '';
+  }
+}

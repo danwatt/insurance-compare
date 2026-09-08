@@ -69,4 +69,6 @@ For sharing across devices, host the app at an address both people can reach. A 
 
 `src/share.ts` handles encoding/decoding, while `src/state.ts` validates both local and shared data. `tests/share.test.ts` covers Unicode, snapshots, invalid links, and storage persistence/failures.
 
+**Print / Save PDF** opens the browser's print dialog. A print stylesheet reduces the page to the household inputs, the plan list, and the full comparison table (all three scenarios at once), dropping the site chrome, tabs, per-row calculation details, and explanatory sections so the inputs and results fit together. Text prints in near-black on near-white for contrast, and the one or two plans in the lowest-cost combination for the selected scenario are highlighted in the plan list.
+
 Plan data is stored only in this browser's localStorage under `family-plan-comparison-v1`; there is no server upload. The UI reports if saving fails. Clearing browser data clears saved plans. CSV export contains gross annual premiums, net scenario totals, coverage assignments, and the HSA Match. It is intended for reviewing results rather than restoring plan inputs. Fonts load from Google Fonts, with local sans-serif fallbacks.

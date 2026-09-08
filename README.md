@@ -39,6 +39,12 @@ The household consists of two parents and zero to twenty children. Each parent b
 
 If an employer uses the family rate for a parent plus children, enter an employee + children option at that rate. An employee + one child entry is only used when exactly one child is assigned to that parent, so it can matter for a two-child family with one child on each parent's plan. Full-family entries represent both parents and all children. Employee + spouse entries apply when there are no children.
 
+### Last year's plan
+
+Any entry can be marked **This was last year's plan**, with at most one such entry per parent. Prior-year entries are reference points for rate changes: they are never offered as a combination and never ranked. They appear at the end of their employer card and as a final reference row in the comparison table, and the recommendation card shows the change between last year's total and the lowest current option for the selected scenario. Each comparison column reports the change against the cheapest option for that column, which is not always the row ranked first.
+
+Prior-year coverage is priced with this year's household and each entry's own coverage tier: employee only covers one person, employee + spouse and employee + one child cover two, employee + children covers that parent plus every child, and full family covers everyone. When both parents have a prior-year entry, their costs are added together, so enter only the coverage each parent actually carried.
+
 ## Calculations
 
 - Annual premiums = employee premium × annual payment count.
@@ -50,6 +56,7 @@ If an employer uses the family rate for a parent plus children, enter an employe
 - Deductible scenario = premiums + deductible exposure − HSA Match.
 - Major medical scenario = premiums + out-of-pocket exposure − HSA Match. The deductible is already included in this exposure, so it is not added again.
 - Split plans calculate each enrollment separately, then add their costs.
+- Last year's coverage uses the same formulas and the same HSA Match handling, but is excluded from the ranked combinations.
 - Each comparison cell shows its net annual total, monthly equivalent (annual ÷ 12), and per-paycheck equivalent. Matching payment schedules use the combined annual total divided by that payment count. Different schedules show each parent's enrollment cost divided by that plan's payment count. These are evenly spread budget equivalents, including HSA Match and scenario medical costs, rather than actual paycheck deductions or medical bill timing. Displayed equivalents are rounded to cents; annual rankings use the annual totals.
 - HSA Match is the expected annual employer HSA contribution, including automatic deposits. For conditional matching, enter what you expect to receive based on your contributions. Do not enter your own HSA contributions or an HRA reimbursement allowance.
 - Each scenario subtracts the match once per enrollment, including both employers for split coverage. Ranking uses these net totals. Actual annual premiums and the match remain visible in the breakdown and CSV export.
@@ -69,6 +76,6 @@ For sharing across devices, host the app at an address both people can reach. A 
 
 `src/share.ts` handles encoding/decoding, while `src/state.ts` validates both local and shared data. `tests/share.test.ts` covers Unicode, snapshots, invalid links, and storage persistence/failures.
 
-**Print / Save PDF** opens the browser's print dialog. A print stylesheet reduces the page to the household inputs, the plan list, and the full comparison table (all three scenarios at once), dropping the site chrome, tabs, per-row calculation details, and explanatory sections so the inputs and results fit together. Text prints in near-black on near-white for contrast, and the one or two plans in the lowest-cost combination for the selected scenario are highlighted in the plan list.
+**Print / Save PDF** opens the browser's print dialog. A print stylesheet reduces the page to the household inputs, the plan list, and the full comparison table (all three scenarios at once), dropping the site chrome, tabs, per-row calculation details, and explanatory sections so the inputs and results fit together. Text prints in near-black on near-white for contrast, and the one or two plans in the lowest-cost combination for the selected scenario are highlighted in the plan list. Any prior-year row prints with its annual totals and change figures; its monthly and per-paycheck equivalents are dropped so the page still fits.
 
-Plan data is stored only in this browser's localStorage under `family-plan-comparison-v1`; there is no server upload. The UI reports if saving fails. Clearing browser data clears saved plans. CSV export contains gross annual premiums, net scenario totals, coverage assignments, and the HSA Match. It is intended for reviewing results rather than restoring plan inputs. Fonts load from Google Fonts, with local sans-serif fallbacks.
+Plan data is stored only in this browser's localStorage under `family-plan-comparison-v1`; there is no server upload. The UI reports if saving fails. Clearing browser data clears saved plans. CSV export contains gross annual premiums, net scenario totals, coverage assignments, and the HSA Match, with any prior-year coverage as a final reference row. It is intended for reviewing results rather than restoring plan inputs. Fonts load from Google Fonts, with local sans-serif fallbacks.

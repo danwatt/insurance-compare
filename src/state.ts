@@ -89,6 +89,20 @@ export function sampleState(): AppState {
         individualMaximum: 4500,
         familyMaximum: 9000,
       },
+      {
+        ...base,
+        id: 'a-last-year',
+        owner: 'first',
+        employer: 'Acme Co.',
+        name: 'Choice PPO (last year)',
+        coverage: 'family',
+        premium: 285,
+        individualDeductible: 1400,
+        familyDeductible: 2800,
+        individualMaximum: 4500,
+        familyMaximum: 9000,
+        previous: true,
+      },
     ],
   }
 }
@@ -124,9 +138,14 @@ export function parseState(value: unknown): AppState | null {
           typeof p.notes !== 'string' ||
           p.notes.length > 1000 ||
           typeof p.aggregateDeductible !== 'boolean' ||
+          (p.previous !== undefined && typeof p.previous !== 'boolean') ||
           validatePlan(p),
       ) ||
-      new Set(data.plans.map((p) => p.id)).size !== data.plans.length
+      new Set(data.plans.map((p) => p.id)).size !== data.plans.length ||
+      // At most one prior-year entry per parent.
+      (['first', 'second'] as const).some(
+        (owner) => data.plans.filter((p) => p.previous && p.owner === owner).length > 1,
+      )
     )
       return null
     return data

@@ -1,6 +1,13 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { comparePlans, planCosts, periodicCosts, validatePlan } from '../src/calculator.ts'
+import {
+  comparePlans,
+  membersCovered,
+  periodicCosts,
+  planCosts,
+  previousComparison,
+  validatePlan,
+} from '../src/calculator.ts'
 import type { Plan } from '../src/calculator.ts'
 
 const household = { first: 'Father', second: 'Mother', children: 2 }
@@ -265,4 +272,54 @@ test('rejects invalid amounts, payment periods, and inverted limits', () => {
     { familyDeductible: 1000 },
   ])
     assert.ok(validatePlan({ ...plan, ...invalid }))
+})
+
+test("last year's plans are excluded from the ranked combinations", () => {
+  const previous = { ...plan, id: 'last-year', premium: 80, previous: true }
+  const results = comparePlans(household, [plan, previous])
+  assert.equal(results.length, 1)
+  assert.equal(results[0]!.enrollments[0]!.plan.id, 'family')
+})
+
+test("last year's coverage is priced with this year's household", () => {
+  const previous = { ...plan, id: 'last-year', premium: 80, previous: true }
+  const prior = previousComparison(household, [plan, previous])!
+  assert.equal(prior.enrollments.length, 1)
+  assert.equal(prior.enrollments[0]!.members, 4) // Full family: two parents + two children.
+  assert.equal(prior.premium, 2080)
+  assert.equal(prior.netPremium, 1580)
+  assert.equal(prior.deductible, 4580)
+  assert.equal(prior.maximum, 11580)
+  assert.equal(comparePlans(household, [plan])[0]!.netPremium - prior.netPremium, 520)
+})
+
+test("last year's coverage combines one entry per parent and ignores extras", () => {
+  const first = { ...plan, id: 'p1', coverage: 'individual' as const, previous: true }
+  const second = {
+    ...plan,
+    id: 'p2',
+    owner: 'second' as const,
+    coverage: 'children' as const,
+    previous: true,
+  }
+  const prior = previousComparison(household, [first, second])!
+  assert.deepEqual(
+    prior.enrollments.map((e) => [e.plan.id, e.members, e.description]),
+    [
+      ['p1', 1, 'Father only'],
+      ['p2', 3, 'Mother + 2 children'],
+    ],
+  )
+  assert.equal(prior.premium, 5200)
+  assert.equal(prior.contribution, 1000) // One match per enrollment.
+  assert.equal(previousComparison(household, [plan]), null)
+})
+
+test('covered member counts follow the coverage tier', () => {
+  assert.equal(membersCovered('individual', household), 1)
+  assert.equal(membersCovered('spouse', household), 2)
+  assert.equal(membersCovered('child', household), 2)
+  assert.equal(membersCovered('children', household), 3)
+  assert.equal(membersCovered('family', household), 4)
+  assert.equal(membersCovered('family', { ...household, children: 0 }), 2)
 })

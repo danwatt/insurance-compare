@@ -81,6 +81,18 @@ test('rejects malformed, oversized, unsupported, and invalid links', () => {
   assert.equal(parseState({}), null)
 })
 
+test('rejects more than one prior-year plan per parent and non-boolean flags', () => {
+  const state = sampleState()
+  assert.ok(parseState(state)) // The sample carries one prior-year plan.
+  const extra = { ...state.plans[0]!, id: 'second-prior', previous: true }
+  assert.equal(parseState({ ...state, plans: [...state.plans, extra] }), null)
+  assert.ok(parseState({ ...state, plans: [...state.plans, { ...extra, owner: 'second' }] }))
+  assert.equal(
+    parseState({ ...state, plans: [{ ...state.plans[0]!, previous: 'yes' as never }] }),
+    null,
+  )
+})
+
 test('local storage saves and restores all calculator data and tolerates failures', () => {
   const previous = Object.getOwnPropertyDescriptor(globalThis, 'localStorage')
   const values = new Map<string, string>()

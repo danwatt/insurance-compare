@@ -1,5 +1,12 @@
 import './style.css'
-import { comparePlans, coverageLabels, planCosts, periodicCosts, validatePlan } from './calculator'
+import {
+  comparePlans,
+  coverageLabels,
+  planCosts,
+  periodicCosts,
+  previousComparison,
+  validatePlan,
+} from './calculator'
 import type { Comparison, Coverage, Metric, Parent, Plan } from './calculator'
 import { loadState, sampleState, saveState } from './state'
 import { createShareUrl, readShareHash } from './share'
@@ -52,6 +59,7 @@ const icon = (name: string, size = 20) => {
     printer:
       '<path d="M7 9V3h10v6M7 19H5a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2M7 15h10v6H7z"/>',
     leaf: '<path d="M20 4C8 2 1 10 6 17s16 0 14-13ZM6 18l9-9M4 21l2-3"/>',
+    history: '<path d="M3 12a9 9 0 1 0 3-6.7L3 8m0-5v5h5"/><path d="M12 7v5l3 2"/>',
   }
   return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths[name] ?? paths.shield}</svg>`
 }
@@ -84,7 +92,7 @@ function render() {
         <span class="member-total"><strong>${state.household.children + 2}</strong> family members</span>
       </section>
       <section id="plans" aria-labelledby="plans-heading">
-        <div class="section-heading"><div><div class="section-kicker">01 / THE OPTIONS</div><h2 id="plans-heading">Your available plans <span class="count">${state.plans.length}</span></h2><p>Add each coverage tier from your employers' benefits guides.</p></div><button class="button primary" id="add-plan">${icon('plus', 17)} Add a plan</button></div>
+        <div class="section-heading"><div><div class="section-kicker">01 / THE OPTIONS</div><h2 id="plans-heading">Your available plans <span class="count">${state.plans.filter((plan) => !plan.previous).length}</span></h2><p>Add each coverage tier from your employers' benefits guides.</p></div><button class="button primary" id="add-plan">${icon('plus', 17)} Add a plan</button></div>
         ${state.sample ? `<div class="sample-banner"><span>${icon('info', 17)} <strong>Example plans loaded.</strong> Replace the sample rates with your own, or start fresh.</span><button id="start-fresh">Start with my plans ${icon('arrow', 16)}</button></div>` : ''}
         <div class="employer-grid">${(['first', 'second'] as Parent[]).map((owner) => employerCard(owner)).join('')}</div>
         <div class="under-plans"><span>${icon(saved ? 'check' : 'info', 14)} ${saved ? 'Changes saved in this browser. Your data stays on this device.' : 'Browser storage is unavailable. Export your results before leaving.'}</span><span>All costs in USD · One full plan year</span></div>
@@ -109,10 +117,16 @@ function render() {
   bindEvents()
 }
 
+function planRow(plan: Plan, owner: Parent) {
+  return `<button class="plan-row ${plan.previous ? 'previous-plan' : ''}" data-edit="${escape(plan.id)}" aria-label="Edit ${escape(plan.name)}, ${escape(coverageLabels[plan.coverage])}, ${escape(state.household[owner])}${plan.previous ? ", last year's plan" : ''}"><span class="plan-details"><span class="coverage-name">${coverageLabels[plan.coverage]}${plan.previous ? '<span class="prior-tag">Last year</span>' : ''}</span><span class="plan-subtitle">${escape(plan.employer)} · ${escape(plan.name)}</span></span><span class="plan-rate"><strong>${money(plan.premium * plan.periods)}<small> / yr</small></strong><span>${money(plan.premium)} × ${plan.periods} payments</span></span><span class="edit-icon">${icon('edit', 15)}</span></button>`
+}
+
 function employerCard(owner: Parent) {
-  const plans = state.plans.filter((plan) => plan.owner === owner)
-  return `<article class="employer-card ${owner}"><div class="employer-header"><div class="employer-avatar">${icon('building', 23)}</div><div><h3>${escape(state.household[owner])}'s options</h3><span>${plans.length} coverage ${plans.length === 1 ? 'option' : 'options'}</span></div><button class="icon-button" data-add="${owner}" aria-label="Add a plan for ${escape(state.household[owner])}">${icon('plus', 19)}</button></div>
-    <div class="plan-list">${plans.length ? plans.map((plan) => `<button class="plan-row" data-edit="${escape(plan.id)}" aria-label="Edit ${escape(plan.name)}, ${escape(coverageLabels[plan.coverage])}, ${escape(state.household[owner])}"><span class="plan-details"><span class="coverage-name">${coverageLabels[plan.coverage]}</span><span class="plan-subtitle">${escape(plan.employer)} · ${escape(plan.name)}</span></span><span class="plan-rate"><strong>${money(plan.premium * plan.periods)}<small> / yr</small></strong><span>${money(plan.premium)} × ${plan.periods} payments</span></span><span class="edit-icon">${icon('edit', 15)}</span></button>`).join('') : `<div class="empty-plans"><p>No plans yet.</p><span>Add an employee-only, family, or employee + children option to start comparing.</span><button class="text-button" data-add="${owner}">Add first plan ${icon('arrow', 15)}</button></div>`}</div>
+  const owned = state.plans.filter((plan) => plan.owner === owner)
+  const plans = owned.filter((plan) => !plan.previous)
+  const prior = owned.find((plan) => plan.previous)
+  return `<article class="employer-card ${owner}"><div class="employer-header"><div class="employer-avatar">${icon('building', 23)}</div><div><h3>${escape(state.household[owner])}'s options</h3><span>${plans.length} coverage ${plans.length === 1 ? 'option' : 'options'}${prior ? ' · 1 prior year' : ''}</span></div><button class="icon-button" data-add="${owner}" aria-label="Add a plan for ${escape(state.household[owner])}">${icon('plus', 19)}</button></div>
+    <div class="plan-list">${plans.length ? plans.map((plan) => planRow(plan, owner)).join('') : `<div class="empty-plans"><p>No plans yet.</p><span>Add an employee-only, family, or employee + children option to start comparing.</span><button class="text-button" data-add="${owner}">Add first plan ${icon('arrow', 15)}</button></div>`}${prior ? planRow(prior, owner) : ''}</div>
     <div class="employer-footer">${icon('info', 14)} Select a plan to edit premiums and coverage limits.</div></article>`
 }
 
@@ -148,6 +162,18 @@ function renderResults() {
   const best = results[0]!
   const tied = results.filter((result) => Math.abs(result[metric] - best[metric]) < 0.005)
   const worst = results[results.length - 1]!
+  const prior = previousComparison(state.household, state.plans)
+  // Signed change from last year's cost to a scenario, for the given metric.
+  const change = (result: Comparison, key: Metric) => result[key] - prior![key]
+  // Each column compares last year against the cheapest option for that column,
+  // which is not always the row ranked first under the selected scenario.
+  const lowest = (key: Metric) =>
+    results.reduce((cheapest, result) => (result[key] < cheapest[key] ? result : cheapest))
+  const delta = (key: Metric) => {
+    const difference = change(lowest(key), key)
+    const percent = prior![key] ? Math.abs((difference / prior![key]) * 100) : 0
+    return `<span class="delta ${difference > 0.005 ? 'up' : difference < -0.005 ? 'down' : 'flat'}">Lowest this year ${difference > 0.005 ? '+' : difference < -0.005 ? '−' : ''}${money(Math.abs(difference))}${prior![key] ? ` (${percent.toFixed(1)}%)` : ''}</span>`
+  }
   const metricLabels = {
     netPremium: 'premiums minus HSA Match',
     deductible: 'everyone meets the deductible',
@@ -168,7 +194,11 @@ function renderResults() {
         )
         .join('')}
     </div>
-    <div class="recommendation"><span class="recommendation-icon">${icon('leaf', 25)}</span><div><div class="recommendation-label">${tied.length > 1 ? `${tied.length} COMBINATIONS TIED FOR LOWEST COST` : 'LOWEST COST FOR THIS SCENARIO'}</div><h3>${escape(best.title)}</h3><p>${worst[metric] > best[metric] ? `${money(worst[metric] - best[metric])} less per year than the highest-cost option` : 'All available combinations have the same cost'} · ${metricLabels[metric]}</p></div><div class="recommendation-total">${money(best[metric])}<span>annual total after HSA Match</span></div></div>
+    <div class="recommendation"><span class="recommendation-icon">${icon('leaf', 25)}</span><div><div class="recommendation-label">${tied.length > 1 ? `${tied.length} COMBINATIONS TIED FOR LOWEST COST` : 'LOWEST COST FOR THIS SCENARIO'}</div><h3>${escape(best.title)}</h3><p>${worst[metric] > best[metric] ? `${money(worst[metric] - best[metric])} less per year than the highest-cost option` : 'All available combinations have the same cost'} · ${metricLabels[metric]}</p></div><div class="recommendation-total">${money(best[metric])}<span>annual total after HSA Match</span></div>${
+      prior
+        ? `<div class="prior-delta"><span>VS LAST YEAR</span><strong class="${change(best, metric) > 0.005 ? 'up' : change(best, metric) < -0.005 ? 'down' : 'flat'}">${change(best, metric) > 0.005 ? '+' : change(best, metric) < -0.005 ? '−' : ''}${money(Math.abs(change(best, metric)))}</strong><small>${money(prior[metric])} last year</small></div>`
+        : ''
+    }</div>
     <div class="table-toolbar"><span><strong>${results.length}</strong> eligible combinations</span><span>Sorted by ${metric === 'netPremium' ? 'premiums minus HSA Match' : metric === 'deductible' ? 'deductible scenario' : 'out-of-pocket scenario'} ↑</span></div>
     <div class="comparison-scroll" tabindex="0" role="region" aria-label="Side-by-side annual cost comparison">
       <table><thead><tr><th scope="col">Coverage combination</th><th scope="col" class="${metric === 'netPremium' ? 'active-column' : ''}">Net annual baseline<small>Premiums − HSA Match</small></th><th scope="col" class="${metric === 'deductible' ? 'active-column' : ''}">Deductibles reached<small>Premiums + deductibles − match</small></th><th scope="col" class="${metric === 'maximum' ? 'active-column' : ''}">Out-of-pocket max<small>Premiums + OOP limits − match</small></th></tr></thead><tbody>
@@ -185,8 +215,13 @@ function renderResults() {
               )}<p>Annual premiums: <strong>${money(result.premium)}</strong><br>HSA Match: <strong>−${money(result.contribution)}/year</strong> (deducted once from each scenario total).</p></div></details></th>${(['netPremium', 'deductible', 'maximum'] as Metric[]).map((key) => `<td class="${metric === key ? 'active-column' : ''}"><strong>${money(result[key])}</strong>${renderPeriodicCosts(result, key)}<span>${key === 'netPremium' ? `${money(result.premium)} premiums` : `+ ${money(key === 'deductible' ? result.deductibleExposure : result.maximumExposure)} in care`}</span>${key === 'netPremium' ? `<span>− ${money(result.contribution)} HSA Match</span>` : ''}${metric === key ? `<div class="cost-bar"><i style="width:${worst[metric] > Math.min(0, best[metric]) ? ((result[metric] - Math.min(0, best[metric])) / (worst[metric] - Math.min(0, best[metric]))) * 100 : 0}%"></i></div>` : ''}</td>`).join('')}</tr>`,
         )
         .join('')}
+      ${
+        prior
+          ? `<tr class="prior-row"><th scope="row"><div class="combination-title"><span class="rank prior-rank">${icon('history', 14)}</span><strong>${escape(prior.title)}</strong><span class="prior-tag">Last year</span></div><div class="enrollments">${prior.enrollments.map((enrollment) => `<div><span class="owner-dot ${enrollment.plan.owner}"></span>${escape(enrollment.description)} <span class="enrollment-plan">· ${escape(enrollment.plan.employer)} / ${escape(enrollment.plan.name)}</span></div>`).join('')}</div></th>${(['netPremium', 'deductible', 'maximum'] as Metric[]).map((key) => `<td class="${metric === key ? 'active-column' : ''}"><strong>${money(prior[key])}</strong>${renderPeriodicCosts(prior, key)}${delta(key)}</td>`).join('')}</tr>`
+          : ''
+      }
       </tbody></table>
-    </div><p class="results-note">${icon('info', 15)} Estimates for covered, in-network care over one full year. Actual costs depend on the care you use. All totals subtract the expected annual HSA Match. This values the employer deposit; it does not reduce payroll premiums. A negative total means the match exceeds modeled costs. Monthly and per-paycheck figures spread the net annual total evenly for budgeting; they are not actual payroll deductions or a medical bill schedule. Different payment schedules are shown separately by parent.</p>
+    </div><p class="results-note">${icon('info', 15)}${prior ? " Last year's coverage is priced with this year's household and is never ranked as an option; it is a reference point for rate changes." : ''} Estimates for covered, in-network care over one full year. Actual costs depend on the care you use. All totals subtract the expected annual HSA Match. This values the employer deposit; it does not reduce payroll premiums. A negative total means the match exceeds modeled costs. Monthly and per-paycheck figures spread the net annual total evenly for budgeting; they are not actual payroll deductions or a medical bill schedule. Different payment schedules are shown separately by parent.</p>
   `
   container.querySelectorAll<HTMLButtonElement>('[data-metric]').forEach((button) =>
     button.addEventListener('click', () => {
@@ -324,6 +359,7 @@ function openPlan(existing?: Plan, owner: Parent = 'first') {
     familyMaximum: 0,
     contribution: 0,
     notes: '',
+    previous: false,
   }
   const dialog = document.querySelector<HTMLDialogElement>('#plan-dialog')!
   const numberField = (key: keyof Plan, label: string, help = '') =>
@@ -337,6 +373,7 @@ function openPlan(existing?: Plan, owner: Parent = 'first') {
           `<option value="${key}" ${plan.coverage === key ? 'selected' : ''}>${label}</option>`,
       )
       .join('')}</select></label></div>
+    <label class="checkbox-label"><input name="previous" type="checkbox" ${plan.previous ? 'checked' : ''}><span>This was last year's plan<small>Reference only. It is priced alongside your options to show the rate change, but is never offered as a combination. One per person.</small></span></label>
     <h3 class="form-heading">Premiums <span>Your share, including surcharges</span></h3><div class="form-grid">${numberField('premium', 'Premium per payment')}<label>Payment schedule<select id="schedule"><option value="12" ${plan.periods === 12 ? 'selected' : ''}>Monthly · 12 per year</option><option value="24" ${plan.periods === 24 ? 'selected' : ''}>Twice monthly · 24 per year</option><option value="26" ${plan.periods === 26 ? 'selected' : ''}>Every 2 weeks · 26 per year</option><option value="52" ${plan.periods === 52 ? 'selected' : ''}>Weekly · 52 per year</option><option value="custom" ${![12, 24, 26, 52].includes(plan.periods) ? 'selected' : ''}>Custom number of payments</option></select></label><label id="custom-periods" ${[12, 24, 26, 52].includes(plan.periods) ? 'hidden' : ''}>Payments per year<input name="periods" type="number" min="1" max="366" step="1" value="${plan.periods}" required></label></div><div class="annual-preview">Annual premium <strong id="annual-preview">${money(plan.premium * plan.periods)}</strong></div>
     <h3 class="form-heading">Deductible <span>Annual, in-network</span></h3><div class="form-grid">${numberField('individualDeductible', 'Per person', 'Use the per-person limit for this tier.')}<div class="family-field">${numberField('familyDeductible', 'All covered members')}</div></div><label class="checkbox-label family-field"><input name="aggregateDeductible" type="checkbox" ${plan.aggregateDeductible ? 'checked' : ''}><span>Aggregate family deductible<small>The full family deductible applies before benefits begin, rather than separate per-person deductibles.</small></span></label>
     <h3 class="form-heading">Out-of-pocket maximum <span>Annual, in-network</span></h3><div class="form-grid">${numberField('individualMaximum', 'Per person')}<div class="family-field">${numberField('familyMaximum', 'All covered members')}</div></div>
@@ -405,8 +442,16 @@ function openPlan(existing?: Plan, owner: Parent = 'first') {
       familyMaximum: amount('familyMaximum'),
       contribution: amount('contribution'),
       notes: String(data.get('notes')).trim(),
+      previous: data.get('previous') === 'on',
     }
-    const error = validatePlan(updated)
+    const duplicatePrior =
+      updated.previous &&
+      state.plans.some(
+        (item) => item.id !== updated.id && item.previous && item.owner === updated.owner,
+      )
+    const error = duplicatePrior
+      ? `${state.household[updated.owner]} already has a plan marked as last year's. Only one is allowed per person.`
+      : validatePlan(updated)
     if (error) {
       const errorElement = dialog.querySelector<HTMLElement>('#form-error')!
       errorElement.textContent = error
@@ -509,6 +554,22 @@ function exportResults() {
         result.maximum,
         result.contribution,
       ].map((value) => Number(value.toFixed(2))),
+      state.sample ? 'Includes example plans' : 'No',
+    ])
+  }
+  const prior = previousComparison(state.household, state.plans)
+  if (prior) {
+    rows.push([
+      `${prior.title} (reference only, not ranked)`,
+      prior.enrollments
+        .map(
+          (e) =>
+            `${e.description}: ${e.plan.employer} / ${e.plan.name} (${coverageLabels[e.plan.coverage]})`,
+        )
+        .join('; '),
+      ...[prior.premium, prior.netPremium, prior.deductible, prior.maximum, prior.contribution].map(
+        (value) => Number(value.toFixed(2)),
+      ),
       state.sample ? 'Includes example plans' : 'No',
     ])
   }

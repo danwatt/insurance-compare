@@ -1258,6 +1258,90 @@ label small {
   white-space: nowrap;
   border: 0;
 }
+
+/* --- Last year's plan (reference only) --- */
+.plan-row.previous-plan {
+  background: #fafbf7;
+  border-top: 1px dashed #dfe5d6;
+}
+.plan-row.previous-plan .coverage-name,
+.plan-row.previous-plan .plan-rate > strong {
+  color: #7f8a7c;
+}
+.prior-tag {
+  font-size: 8px;
+  font-weight: 600;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  background: #eceee7;
+  color: #78836f;
+  border: 1px solid #e0e4d8;
+  border-radius: 4px;
+  padding: 2px 5px;
+  margin-left: 7px;
+  white-space: nowrap;
+}
+.prior-delta {
+  text-align: right;
+  white-space: nowrap;
+  padding-left: 17px;
+  border-left: 1px solid #d7e2cc;
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.prior-delta > span {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1.25px;
+  color: #728361;
+}
+.prior-delta > strong {
+  font-family: 'Manrope', sans-serif;
+  font-size: 19px;
+  font-weight: 750;
+  letter-spacing: -0.5px;
+  margin-top: 3px;
+}
+.prior-delta > small {
+  font-size: 9px;
+  color: #809071;
+  margin-top: 3px;
+}
+.prior-delta > strong.up {
+  color: #9a4b32;
+}
+.prior-delta > strong.down,
+.prior-delta > strong.flat {
+  color: #3f6b45;
+}
+tbody tr.prior-row {
+  background: #fbfbf8;
+  border-top: 2px solid #dfe3d8;
+}
+tbody tr.prior-row td,
+tbody tr.prior-row th {
+  color: #6f7a6e;
+}
+tbody tr.prior-row .active-column {
+  background: #f5f6f0;
+}
+.prior-rank {
+  color: #8b9682;
+}
+.delta {
+  display: block;
+  font-weight: 600;
+}
+.delta.up {
+  color: #9a4b32;
+}
+.delta.down,
+.delta.flat {
+  color: #3f6b45;
+}
+
 @media (min-width: 1500px) {
   main,
   .header-inner {
@@ -1484,6 +1568,21 @@ label small {
     margin-left: 9px;
     font-size: 9px;
   }
+  .prior-delta {
+    flex: 0 0 100%;
+    padding: 0 0 0 49px;
+    border-left: 0;
+    flex-direction: row;
+    align-items: baseline;
+    gap: 8px;
+  }
+  .prior-delta > strong {
+    font-size: 15px;
+    margin-top: 0;
+  }
+  .prior-delta > small {
+    margin-top: 0;
+  }
   .table-toolbar {
     font-size: 9px;
   }
@@ -1632,7 +1731,11 @@ label small {
   tbody .active-column {
     background: #f6f6f6 !important;
   }
+  .delta {
+    color: #141414 !important;
+  }
   .best-tag,
+  .prior-tag,
   .rank,
   .count {
     background: #e6e6e6 !important;
@@ -1693,7 +1796,7 @@ label small {
     height: 28px;
   }
   .plan-row {
-    padding: 4px 12px !important;
+    padding: 3px 12px !important;
   }
   .plan-row.winning-plan {
     background: #e4e4e4 !important;
@@ -1712,7 +1815,7 @@ label small {
     background: #f4f4f3 !important;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
-    padding: 8px 12px;
+    padding: 6px 12px;
     gap: 10px;
   }
   .recommendation-icon {
@@ -1727,6 +1830,38 @@ label small {
   .recommendation-total {
     font-size: 20px;
   }
+  .prior-delta {
+    padding-left: 10px;
+    border-left-color: #8a8a8a !important;
+  }
+  .prior-delta > span {
+    font-size: 7px;
+  }
+  .prior-delta > strong {
+    font-size: 15px;
+  }
+  .prior-delta > small {
+    font-size: 7px;
+    color: #3d3d3d !important;
+  }
+  .plan-row.previous-plan {
+    background: #fff !important;
+    border-top-color: #c4c4c4 !important;
+  }
+  tbody tr.prior-row {
+    border-top: 1.5px solid #8a8a8a !important;
+  }
+  /* The reference row only needs its annual totals on paper. */
+  .prior-row .periodic-costs {
+    display: none !important;
+  }
+  .prior-tag {
+    background: #ededed !important;
+    color: #141414 !important;
+    border-color: #b0b0b0 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
   .comparison-scroll {
     overflow: visible !important;
   }
@@ -1736,7 +1871,7 @@ label small {
   }
   th,
   td {
-    padding: 4px 7px !important;
+    padding: 3px 7px !important;
   }
   tbody td {
     min-width: 0;

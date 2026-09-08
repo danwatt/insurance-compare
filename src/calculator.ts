@@ -26,6 +26,9 @@ export interface Plan {
   familyMaximum: number
   contribution: number
   notes: string
+  // Last year's enrollment for this parent. Reference only: never ranked as an
+  // option, but priced the same way so rate increases are visible.
+  previous?: boolean
 }
 
 export interface Enrollment {
@@ -53,6 +56,15 @@ export const coverageLabels: Record<Coverage, string> = {
   child: 'Employee + one child',
   children: 'Employee + children',
   family: 'Full family',
+}
+
+// How many people a tier covers for this household, used to price last year's
+// enrollment. The scenario builder allocates members itself.
+export function membersCovered(coverage: Coverage, household: Household): number {
+  if (coverage === 'individual') return 1
+  if (coverage === 'spouse' || coverage === 'child') return 2
+  if (coverage === 'children') return 1 + household.children
+  return 2 + household.children
 }
 
 export function planCosts(plan: Plan, members: number) {
@@ -97,34 +109,61 @@ export function periodicCosts(comparison: Comparison, metric: Metric) {
   return { monthly: cents(comparison[metric] / 12), paychecks }
 }
 
-export function comparePlans(household: Household, plans: Plan[]): Comparison[] {
+export function buildComparison(id: string, title: string, enrollments: Enrollment[]): Comparison {
+  let premium = 0,
+    deductibleExposure = 0,
+    maximumExposure = 0,
+    contribution = 0
+  for (const enrollment of enrollments) {
+    const cost = planCosts(enrollment.plan, enrollment.members)
+    premium += cost.premium
+    deductibleExposure += cost.deductibleExposure
+    maximumExposure += cost.maximumExposure
+    contribution += enrollment.plan.contribution
+  }
+  return {
+    id,
+    title,
+    enrollments,
+    premium,
+    deductibleExposure,
+    maximumExposure,
+    // Count the expected annual employer HSA deposit once per enrollment.
+    // This is net economic cost; actual payroll premiums stay unchanged.
+    netPremium: Math.round((premium - contribution) * 100) / 100,
+    deductible: Math.round((premium + deductibleExposure - contribution) * 100) / 100,
+    maximum: Math.round((premium + maximumExposure - contribution) * 100) / 100,
+    contribution,
+  }
+}
+
+// Price last year's enrollment with this year's household so the current
+// options can be read against it. At most one entry per parent.
+export function previousComparison(household: Household, plans: Plan[]): Comparison | null {
+  const enrollments: Enrollment[] = []
+  for (const owner of ['first', 'second'] as Parent[]) {
+    const plan = plans.find((item) => item.previous && item.owner === owner)
+    if (!plan) continue
+    const members = membersCovered(plan.coverage, household)
+    const children =
+      plan.coverage === 'children' ? household.children : plan.coverage === 'child' ? 1 : 0
+    const description =
+      plan.coverage === 'family'
+        ? `${household.first} + ${household.second}${household.children ? ` + ${household.children} ${household.children === 1 ? 'child' : 'children'}` : ''}`
+        : plan.coverage === 'spouse'
+          ? `${household.first} + ${household.second}`
+          : `${household[owner]}${children ? ` + ${children} ${children === 1 ? 'child' : 'children'}` : ' only'}`
+    enrollments.push({ plan, members, description })
+  }
+  if (!enrollments.length) return null
+  return buildComparison('previous', "Last year's coverage", enrollments)
+}
+
+export function comparePlans(household: Household, allPlans: Plan[]): Comparison[] {
   const comparisons: Comparison[] = []
+  const plans = allPlans.filter((plan) => !plan.previous)
   const add = (id: string, title: string, enrollments: Enrollment[]) => {
-    let premium = 0,
-      deductibleExposure = 0,
-      maximumExposure = 0,
-      contribution = 0
-    for (const enrollment of enrollments) {
-      const cost = planCosts(enrollment.plan, enrollment.members)
-      premium += cost.premium
-      deductibleExposure += cost.deductibleExposure
-      maximumExposure += cost.maximumExposure
-      contribution += enrollment.plan.contribution
-    }
-    comparisons.push({
-      id,
-      title,
-      enrollments,
-      premium,
-      deductibleExposure,
-      maximumExposure,
-      // Count the expected annual employer HSA deposit once per enrollment.
-      // This is net economic cost; actual payroll premiums stay unchanged.
-      netPremium: Math.round((premium - contribution) * 100) / 100,
-      deductible: Math.round((premium + deductibleExposure - contribution) * 100) / 100,
-      maximum: Math.round((premium + maximumExposure - contribution) * 100) / 100,
-      contribution,
-    })
+    comparisons.push(buildComparison(id, title, enrollments))
   }
 
   for (const plan of plans) {

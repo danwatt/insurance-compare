@@ -78,4 +78,18 @@ For sharing across devices, host the app at an address both people can reach. A 
 
 **Print / Save PDF** opens the browser's print dialog. A print stylesheet reduces the page to the household inputs, the plan list, and the full comparison table (all three scenarios at once), dropping the site chrome, tabs, per-row calculation details, and explanatory sections so the inputs and results fit together. Text prints in near-black on near-white for contrast, and the one or two plans in the lowest-cost combination for the selected scenario are highlighted in the plan list. Any prior-year row prints with its annual totals and change figures; its monthly and per-paycheck equivalents are dropped so the page still fits.
 
+The footer links to the project repository at <https://github.com/danwatt/insurance-compare> for source code and issue reports; it is hidden in the print layout.
+
 Plan data is stored only in this browser's localStorage under `family-plan-comparison-v1`; there is no server upload. The UI reports if saving fails. Clearing browser data clears saved plans. CSV export contains gross annual premiums, net scenario totals, coverage assignments, and the HSA Match, with any prior-year coverage as a final reference row. It is intended for reviewing results rather than restoring plan inputs. Fonts load from Google Fonts, with local sans-serif fallbacks.
+
+## Break-even chart
+
+Below the comparison table, the medical-spending chart plots net annual family cost against covered, in-network allowed charges before insurance pays. Select up to eight current coverage combinations, adjust the displayed spending range, and use the slider or dollar input to inspect costs. The initial selection contains up to eight combinations with the lowest net premiums; results apply only to selected combinations and the displayed range. Last-year reference entries are excluded.
+
+Each plan has an optional **Coinsurance — your share (%)** field. Enter the percentage the patient pays after the deductible, not the insurer's share. Older plans and blank entries use a visibly disclosed 20% assumption. Explicit 0% is supported. Rates are saved locally and included in shared links; existing saved data and links still load.
+
+The model distributes total allowed charges equally among all household members, so each enrollment receives spending proportional to its member count. For each enrollment it adds deductible spending and post-deductible coinsurance, capped by applicable individual/family out-of-pocket limits, then adds premiums and subtracts HSA Match. Copays, preventive-care exceptions, separate prescription accumulators, uneven spending, and differences in negotiated prices are not modeled. At 0% coinsurance, costs can plateau at the deductible without reaching the out-of-pocket maximum.
+
+`src/breakEven.ts` finds crossings analytically between deductible and out-of-pocket slope changes. The numbered chart markers and range summary show changes in the cheapest selected option, including ties. The expandable pairwise list also shows crossings between options that may not be cheapest. `src/chart.ts` renders the SVG and interactive controls without a charting dependency. Chart range, inspection value, and selection are temporary view settings, not saved/shared plan data. Tests live in `tests/breakEven.test.ts`.
+
+Coinsurance reference: [HealthCare.gov](https://www.healthcare.gov/glossary/co-insurance/).

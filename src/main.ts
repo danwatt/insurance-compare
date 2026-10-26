@@ -10,8 +10,10 @@ import {
 import type { Comparison, Coverage, Metric, Parent, Plan } from './calculator'
 import { loadState, sampleState, saveState } from './state'
 import { createShareUrl, readShareHash } from './share'
+import { mountBreakEvenChart } from './chart'
 
 const app = document.querySelector<HTMLDivElement>('#app')!
+const repositoryUrl = 'https://github.com/danwatt/insurance-compare'
 const shared = readShareHash(location.hash)
 let state = shared.kind === 'valid' ? shared.state : loadState()
 let metric: Metric = shared.kind === 'valid' ? shared.metric : 'netPremium'
@@ -60,8 +62,12 @@ const icon = (name: string, size = 20) => {
       '<path d="M7 9V3h10v6M7 19H5a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2M7 15h10v6H7z"/>',
     leaf: '<path d="M20 4C8 2 1 10 6 17s16 0 14-13ZM6 18l9-9M4 21l2-3"/>',
     history: '<path d="M3 12a9 9 0 1 0 3-6.7L3 8m0-5v5h5"/><path d="M12 7v5l3 2"/>',
+    github:
+      '<path d="M12.5.75C6.146.75 1 5.896 1 12.25c0 5.089 3.292 9.387 7.863 10.91.575.101.79-.244.79-.546 0-.273-.014-1.178-.014-2.142-2.889.532-3.636-.704-3.866-1.35-.13-.331-.69-1.352-1.18-1.625-.402-.216-.977-.748-.014-.762.906-.014 1.553.834 1.769 1.179 1.035 1.74 2.688 1.25 3.349.948.1-.747.402-1.25.733-1.538-2.559-.287-5.232-1.279-5.232-5.678 0-1.25.445-2.285 1.178-3.29-.115-.288-.517-1.467.115-3.048 0 0 .963-.302 3.163 1.179.92-.259 1.897-.388 2.875-.388.977 0 1.955.13 2.875.388 2.2-1.495 3.162-1.179 3.162-1.179.633 1.581.23 2.76.115 3.048.733 1.005 1.179 2.026 1.179 3.29 0 4.413-2.688 5.39-5.247 5.678.417.36.776 1.05.776 2.128 0 1.538-.014 2.774-.014 3.162 0 .302.216.662.79.547C20.709 21.637 24 17.324 24 12.25 24 5.896 18.854.75 12.5.75Z"/>',
   }
-  return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths[name] ?? paths.shield}</svg>`
+  // Brand marks are solid shapes; the rest of the set is drawn with strokes.
+  const solid = name === 'github'
+  return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="${solid ? 'currentColor' : 'none'}" stroke="${solid ? 'none' : 'currentColor'}" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths[name] ?? paths.shield}</svg>`
 }
 
 function persist() {
@@ -101,12 +107,13 @@ function render() {
         <div class="section-heading"><div><div class="section-kicker">02 / THE BIG PICTURE</div><h2 id="comparison-heading">Find your best fit</h2><p>Every eligible combination. Three ways to look at the cost.</p></div><div class="comparison-actions"><button class="button secondary" id="share">Share comparison</button><button class="button secondary" id="print">${icon('printer', 17)} Print / Save PDF</button><button class="button secondary" id="export" ${comparePlans(state.household, state.plans).length ? '' : 'disabled'}>${icon('download', 17)} Export results</button></div></div>
         <div id="results"></div>
       </section>
+      <section id="break-even" aria-labelledby="break-even-heading"></section>
       <section class="explanation" id="how-it-works">
         <div class="section-kicker">THE DETAILS MATTER</div><h2>A clearer comparison, with a few assumptions.</h2>
         <div class="explanation-grid"><div><span class="explanation-number">01</span><h3>Premiums are the starting line.</h3><p>Your share of each payment × payments per year. Use 12 for monthly, 24 for twice monthly, or 26 for every two weeks. Include applicable surcharges in the premium. The baseline comparison subtracts your expected annual HSA Match.</p></div><div><span class="explanation-number">02</span><h3>Family limits work together.</h3><p>For embedded deductibles, we use the lower of the individual limit × covered members or the family limit. Aggregate plans use the family deductible, capped by applicable out-of-pocket limits.</p></div><div><span class="explanation-number">03</span><h3>Worst case has a boundary.</h3><p>Premiums + out-of-pocket exposure − HSA Match for covered, in-network care. The deductible is already part of this limit. Out-of-network care, excluded services, and tax effects are not included.</p></div></div>
         <details class="assumptions"><summary>${icon('info', 17)} What else should I check in my benefits guide?</summary><div><p>Compare provider networks, prescription coverage, copays, coinsurance, HSA Match, and working-spouse surcharges or exclusions. The expected annual HSA Match is deducted once from each scenario total, including when it remains in your HSA for future care. Your own HSA contributions are not deducted.</p><p>These are spending scenarios, not a prediction of medical bills. The deductible scenario excludes copays and coinsurance beyond the deductible. Enter the per-person limits that apply to the chosen tier; these can differ from employee-only limits. All out-of-pocket limits here are embedded individual limits.</p><p>Each tier must be eligible for the people shown. “Employee + one child” covers one parent and exactly one child, and is only used when a single child is assigned to that parent; “Employee + children” covers one parent and their allocated children; “Full family” covers both parents and all children. If your employer charges the family rate for employee + children, add an employee + children entry with that rate and its applicable limits. Spouse exclusions, age-based eligibility, dual coverage, midyear changes, and different plan-year dates are not modeled.</p><p>Learn more: <a href="https://www.healthcare.gov/glossary/deductible/" target="_blank" rel="noreferrer">Deductibles</a> and <a href="https://www.healthcare.gov/glossary/out-of-pocket-maximum-limit/" target="_blank" rel="noreferrer">out-of-pocket limits</a> at HealthCare.gov.</p></div></details>
       </section>
-      <footer><a class="brand" href="#">${icon('shield', 19)} CoverCompare.</a><span>A little less guesswork. A little more peace of mind.</span><button id="load-examples">Load example plans</button></footer>
+      <footer><a class="brand" href="#">${icon('shield', 19)} CoverCompare.</a><span>A little less guesswork. A little more peace of mind.</span><div class="footer-links"><a class="footer-link" href="${repositoryUrl}" target="_blank" rel="noreferrer noopener">${icon('github', 13)} Source code &amp; issues</a><button id="load-examples">Load example plans</button></div></footer>
     </main>
     <dialog id="share-dialog" aria-labelledby="share-title"></dialog>
     <dialog id="plan-dialog" aria-labelledby="dialog-title"></dialog>
@@ -114,6 +121,10 @@ function render() {
     <div class="sr-only" id="announcement" role="status" aria-live="polite"></div>
   `
   renderResults()
+  mountBreakEvenChart(
+    document.querySelector<HTMLElement>('#break-even')!,
+    comparePlans(state.household, state.plans),
+  )
   bindEvents()
 }
 
@@ -376,6 +387,7 @@ function openPlan(existing?: Plan, owner: Parent = 'first') {
     <label class="checkbox-label"><input name="previous" type="checkbox" ${plan.previous ? 'checked' : ''}><span>This was last year's plan<small>Reference only, never ranked as an option. One per person.</small></span></label>
     <h3 class="form-heading">Premiums <span>Your share, including surcharges</span><span class="annual-preview">Annual <strong id="annual-preview">${money(plan.premium * plan.periods)}</strong></span></h3><div class="form-grid premiums">${numberField('premium', 'Premium per payment')}<label>Payment schedule<select id="schedule"><option value="12" ${plan.periods === 12 ? 'selected' : ''}>Monthly · 12 per year</option><option value="24" ${plan.periods === 24 ? 'selected' : ''}>Twice monthly · 24 per year</option><option value="26" ${plan.periods === 26 ? 'selected' : ''}>Every 2 weeks · 26 per year</option><option value="52" ${plan.periods === 52 ? 'selected' : ''}>Weekly · 52 per year</option><option value="custom" ${![12, 24, 26, 52].includes(plan.periods) ? 'selected' : ''}>Custom number of payments</option></select></label><label id="custom-periods" ${[12, 24, 26, 52].includes(plan.periods) ? 'hidden' : ''}>Payments per year<input name="periods" type="number" min="1" max="366" step="1" value="${plan.periods}" required></label></div>
     <div class="form-columns"><section><h3 class="form-heading">Deductible <span>Annual, in-network</span></h3><div class="form-grid">${numberField('individualDeductible', 'Per person', 'Use the per-person limit for this tier.')}<div class="family-field">${numberField('familyDeductible', 'All covered members')}</div></div><label class="checkbox-label family-field"><input name="aggregateDeductible" type="checkbox" ${plan.aggregateDeductible ? 'checked' : ''}><span>Aggregate family deductible<small>The full family amount applies before benefits begin, rather than per-person deductibles.</small></span></label></section><section><h3 class="form-heading">Out-of-pocket maximum <span>Annual, in-network</span></h3><div class="form-grid">${numberField('individualMaximum', 'Per person')}<div class="family-field">${numberField('familyMaximum', 'All covered members')}</div></div></section></div>
+    <h3 class="form-heading">Coinsurance <span>For the break-even chart</span></h3><label>Coinsurance — your share (%)<input name="coinsurance" type="number" min="0" max="100" step="0.01" value="${plan.coinsurance ?? ''}" placeholder="20% assumed if blank"><small>Percentage you pay after meeting the deductible, e.g. 20 means you pay 20% and the plan pays 80%. Leave blank to use the chart’s disclosed 20% assumption.</small></label>
     <h3 class="form-heading">A little more context <span>Optional</span></h3><div class="form-grid">${numberField('contribution', 'HSA Match', 'Expected employer deposit per year. Enter what you expect to receive, not your own contributions. Deducted from every total.')}<label>Notes<textarea name="notes" rows="2" maxlength="1000" placeholder="Network, prescriptions, spouse eligibility…">${escape(plan.notes)}</textarea></label></div>
     <p class="form-error" id="form-error" role="alert" hidden></p><div class="dialog-actions">${existing ? '<button class="delete-button" id="delete-plan" type="button">Delete plan</button>' : ''}<button class="button secondary" type="button" id="cancel-dialog">Cancel</button><button class="button primary" type="submit">${existing ? 'Save changes' : 'Add plan'} ${icon('check', 16)}</button></div></form>`
   const form = dialog.querySelector<HTMLFormElement>('form')!
@@ -440,6 +452,8 @@ function openPlan(existing?: Plan, owner: Parent = 'first') {
       individualMaximum: amount('individualMaximum'),
       familyMaximum: amount('familyMaximum'),
       contribution: amount('contribution'),
+      coinsurance:
+        String(data.get('coinsurance') ?? '').trim() === '' ? undefined : amount('coinsurance'),
       notes: String(data.get('notes')).trim(),
       previous: data.get('previous') === 'on',
     }

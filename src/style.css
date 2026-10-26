@@ -1103,13 +1103,28 @@ footer .brand {
 footer > span {
   font-size: 10px;
 }
-footer > button {
+.footer-links {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+.footer-links > button,
+.footer-link {
   background: transparent;
   border: 0;
   color: #89977b;
   text-decoration: underline;
   text-underline-offset: 3px;
   font-size: 10px;
+}
+.footer-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+.footer-link:hover {
+  color: var(--green);
 }
 dialog {
   border: 1px solid #e1e6d9;
@@ -1656,6 +1671,11 @@ tbody tr.prior-row .active-column {
     flex-basis: 100%;
     font-size: 9px;
   }
+  .footer-links {
+    flex-wrap: wrap;
+    gap: 6px 14px;
+    justify-content: flex-end;
+  }
   dialog {
     padding: 22px;
   }
@@ -1954,5 +1974,242 @@ tbody tr.prior-row .active-column {
   }
   a[href]::after {
     content: '';
+  }
+}
+
+/* Medical-spending break-even chart */
+#break-even {
+  margin-top: 42px;
+  scroll-margin-top: 24px;
+}
+.break-even-panel {
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 24px;
+}
+.chart-controls {
+  display: flex;
+  gap: 24px;
+  align-items: center;
+  justify-content: space-between;
+}
+.chart-controls label {
+  min-width: 190px;
+}
+.chart-controls p,
+.chart-footnote {
+  font-size: 11px;
+  color: #6c7767;
+  line-height: 1.7;
+}
+.chart-options {
+  margin-top: 20px;
+  font-size: 12px;
+  color: #52664b;
+}
+.chart-options summary,
+.chart-breakpoints summary {
+  cursor: pointer;
+}
+.chart-options > div {
+  display: grid;
+  gap: 10px;
+  max-height: 240px;
+  overflow: auto;
+  padding: 15px 0;
+}
+.chart-options label {
+  flex-direction: row;
+  align-items: start;
+  line-height: 1.6;
+}
+.chart-options input {
+  width: 15px;
+  flex-shrink: 0;
+  accent-color: var(--green);
+}
+.chart-assumptions {
+  background: #f1f4e9;
+  color: #687453;
+  padding: 12px 15px;
+  border-radius: 7px;
+  margin: 18px 0;
+  font-size: 11px;
+}
+.chart-plot {
+  width: 100%;
+  overflow: auto;
+}
+.chart-plot svg {
+  display: block;
+  width: 100%;
+  min-width: 600px;
+}
+.chart-plot text {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 11px;
+  fill: #6c7767;
+}
+.chart-plot .chart-axis-title {
+  font-size: 12px;
+  fill: #374c3d;
+}
+.chart-grid {
+  stroke: #e8ede3;
+  stroke-width: 1;
+}
+.chart-switch {
+  stroke: #899b79;
+  stroke-dasharray: 5 5;
+}
+.chart-legend {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px 22px;
+  margin: 15px 0 23px;
+}
+.chart-legend > div {
+  display: flex;
+  gap: 8px;
+  font-size: 11px;
+  line-height: 1.6;
+  color: #6c7767;
+  overflow-wrap: anywhere;
+}
+.chart-legend i {
+  width: 18px;
+  height: 3px;
+  margin-top: 8px;
+  flex-shrink: 0;
+  border-radius: 3px;
+}
+.chart-inspector {
+  padding-top: 18px;
+  border-top: 1px solid var(--line);
+}
+.chart-inspector-inputs {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin-top: 10px;
+}
+.chart-inspector input[type='range'] {
+  padding: 0;
+  accent-color: var(--green);
+  flex: 1;
+}
+.chart-inspector input[type='number'] {
+  max-width: 145px;
+}
+.chart-costs {
+  margin-top: 18px;
+}
+.chart-costs > p {
+  font-size: 12px;
+  margin-bottom: 12px;
+}
+.chart-costs > div {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 10px;
+}
+.chart-costs article {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 13px;
+}
+.chart-costs article:first-child {
+  background: #eef4e7;
+  border-color: #d5e3ca;
+}
+.chart-costs article > span {
+  display: block;
+  font-size: 10px;
+  color: #67795a;
+}
+.chart-costs article > strong {
+  display: block;
+  font-size: 21px;
+  margin: 7px 0;
+  letter-spacing: -0.6px;
+}
+.chart-costs small {
+  font-size: 10px;
+  font-weight: 400;
+}
+.chart-breakpoints {
+  border-top: 1px solid var(--line);
+  margin-top: 23px;
+  padding-top: 20px;
+}
+.chart-breakpoints h3 {
+  font-size: 15px;
+}
+.chart-breakpoints p,
+.chart-breakpoints li,
+.chart-breakpoints summary {
+  font-size: 11px;
+  line-height: 1.8;
+  color: #6c7767;
+}
+.chart-breakpoints ol {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+.chart-breakpoints ol li {
+  display: flex;
+  justify-content: space-between;
+  gap: 15px;
+  padding: 10px 12px;
+  background: #f6f8f1;
+  border-radius: 6px;
+}
+.chart-breakpoints ol strong {
+  color: #375a37;
+}
+.chart-footnote {
+  margin-top: 20px;
+}
+.chart-footnote a {
+  color: var(--green);
+}
+@media (max-width: 700px) {
+  .break-even-panel {
+    padding: 16px;
+  }
+  .chart-controls {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+  .chart-legend {
+    grid-template-columns: 1fr;
+  }
+  .chart-breakpoints ol li {
+    flex-direction: column;
+    gap: 3px;
+  }
+}
+@media print {
+  #break-even {
+    break-before: page;
+  }
+  .chart-controls,
+  .chart-options,
+  .chart-inspector {
+    display: none;
+  }
+  .chart-plot svg {
+    min-width: 0;
+  }
+  .chart-plot {
+    overflow: visible;
+  }
+  .chart-legend,
+  .chart-breakpoints {
+    break-inside: avoid;
   }
 }

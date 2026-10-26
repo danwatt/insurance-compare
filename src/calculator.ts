@@ -26,6 +26,8 @@ export interface Plan {
   familyMaximum: number
   contribution: number
   notes: string
+  // Patient's percentage after the deductible; omitted on older saved plans.
+  coinsurance?: number
   // Last year's enrollment for this parent. Reference only: never ranked as an
   // option, but priced the same way so rate increases are visible.
   previous?: boolean
@@ -225,6 +227,11 @@ export function comparePlans(household: Household, allPlans: Plan[]): Comparison
 }
 
 export function validatePlan(plan: Plan): string | null {
+  if (
+    plan.coinsurance !== undefined &&
+    (!Number.isFinite(plan.coinsurance) || plan.coinsurance < 0 || plan.coinsurance > 100)
+  )
+    return 'Coinsurance must be your share of costs, from 0% to 100%.'
   if (!plan.name.trim() || !plan.employer.trim()) return 'Enter a plan name and employer.'
   if (!['first', 'second'].includes(plan.owner) || !Object.hasOwn(coverageLabels, plan.coverage))
     return 'Choose a valid employee and coverage tier.'
